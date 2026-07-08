@@ -13,6 +13,7 @@ class Payment extends Model
     protected $fillable = [
         'order_id',
         'provider',
+        'amount',
         'transaction_id',
         'status',
         'raw_response',
@@ -21,6 +22,7 @@ class Payment extends Model
     protected function casts(): array
     {
         return [
+            'amount' => 'decimal:2',
             'raw_response' => 'array',
         ];
     }

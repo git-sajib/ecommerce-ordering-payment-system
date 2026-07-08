@@ -55,8 +55,13 @@ class ProductService
     /**
      * Reduce stock after successful payment.
      */
+
     public function reduceStock(Product $product, int $quantity): void
     {
+        if ($product->stock < $quantity) {
+            abort(422, "Insufficient stock for {$product->name}");
+        }
+
         $product->decrement('stock', $quantity);
     }
 }

@@ -21,8 +21,9 @@ return new class extends Migration
 
             $table->string('provider');
 
-            $table->string('transaction_id')
-                ->unique();
+            $table->decimal('amount', 10, 2);
+
+            $table->string('transaction_id')->unique();
 
             $table->string('status')
                 ->default('pending');

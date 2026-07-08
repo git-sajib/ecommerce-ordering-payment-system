@@ -19,7 +19,9 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->decimal('total_amount', 10, 2);
+            $table->decimal('subtotal', 10, 2);
+
+            $table->decimal('total', 10, 2);
 
             $table->string('status')
                 ->default('pending');

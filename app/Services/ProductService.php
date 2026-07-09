@@ -4,17 +4,24 @@ namespace App\Services;
 
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class ProductService
 {
+    private const CACHE_PRODUCTS = 'products';
+
     /**
      * Get all products with category.
      */
     public function all(): Collection
     {
-        return Product::with('category')
-            ->latest()
-            ->get();
+        return Cache::remember(
+            self::CACHE_PRODUCTS,
+            now()->addHour(),
+            fn() => Product::with('category')
+                ->latest()
+                ->get()
+        );
     }
 
     /**
@@ -31,7 +38,11 @@ class ProductService
      */
     public function create(array $data): Product
     {
-        return Product::create($data);
+        $product = Product::create($data);
+
+        $this->clearCache();
+
+        return $product;
     }
 
     /**
@@ -40,6 +51,8 @@ class ProductService
     public function update(Product $product, array $data): Product
     {
         $product->update($data);
+
+        $this->clearCache();
 
         return $product->fresh();
     }
@@ -50,12 +63,13 @@ class ProductService
     public function delete(Product $product): void
     {
         $product->delete();
+
+        $this->clearCache();
     }
 
     /**
      * Reduce stock after successful payment.
      */
-
     public function reduceStock(Product $product, int $quantity): void
     {
         if ($product->stock < $quantity) {
@@ -63,5 +77,15 @@ class ProductService
         }
 
         $product->decrement('stock', $quantity);
+
+        $this->clearCache();
+    }
+
+    /**
+     * Clear product cache.
+     */
+    private function clearCache(): void
+    {
+        Cache::forget(self::CACHE_PRODUCTS);
     }
 }

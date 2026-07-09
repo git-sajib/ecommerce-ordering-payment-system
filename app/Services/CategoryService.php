@@ -56,7 +56,7 @@ class CategoryService
     /**
      * Category tree.
      */
-    public function tree()
+    public function tree(): Collection
     {
         return $this->treeService->buildTree();
     }

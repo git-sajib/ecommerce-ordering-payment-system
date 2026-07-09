@@ -17,22 +17,33 @@ class CategoryTreeService
             ->get();
 
         return $categories->map(function (Category $category) {
-            $category->children = $this->buildTree($category->id);
+
+            $category->children = $this->buildTree(
+                $category->id
+            );
 
             return $category;
         });
     }
 
     /**
-     * Depth-First Search traversal.
+     * Depth-First Search (DFS) traversal.
      */
-    public function depthFirstTraversal(Collection $categories, array &$result = []): array
-    {
+    public function depthFirstTraversal(
+        Collection $categories,
+        array &$result = []
+    ): array {
+
         foreach ($categories as $category) {
+
             $result[] = $category;
 
             if ($category->children->isNotEmpty()) {
-                $this->depthFirstTraversal($category->children, $result);
+
+                $this->depthFirstTraversal(
+                    $category->children,
+                    $result
+                );
             }
         }
 

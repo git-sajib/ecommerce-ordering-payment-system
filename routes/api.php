@@ -34,6 +34,7 @@ Route::prefix('v1')->group(function () {
     // Public Routes
     Route::get('categories', [CategoryController::class, 'index']);
     Route::get('categories/tree', [CategoryController::class, 'tree']);
+    Route::get('categories/dfs', [CategoryController::class, 'dfs']);
     Route::get('categories/{category}', [CategoryController::class, 'show']);
 
     // Admin Routes

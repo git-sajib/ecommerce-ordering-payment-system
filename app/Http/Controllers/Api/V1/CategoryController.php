@@ -37,6 +37,13 @@ class CategoryController extends Controller
         );
     }
 
+    public function dfs(): JsonResponse
+    {
+        return $this->success(
+            $this->categoryService->dfs()
+        );
+    }
+
     public function show(Category $category): JsonResponse
     {
         return $this->success(

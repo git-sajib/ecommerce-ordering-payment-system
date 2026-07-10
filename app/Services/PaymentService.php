@@ -16,42 +16,65 @@ class PaymentService
     ) {}
 
     /**
-     * Process payment for an order.
+     * Create a payment for an order.
      */
-    public function pay(Order $order, string $provider): Payment
+    public function pay(Order $order, string $provider): array
     {
-        // Prevent duplicate payments
-        if ($order->payment()->exists()) {
-            abort(422, 'Payment already exists for this order.');
+        // Prevent duplicate successful payments
+        $alreadyPaid = $order->payment()
+            ->where('status', PaymentStatus::SUCCESS->value)
+            ->exists();
+
+        if ($alreadyPaid) {
+            abort(422, 'This order has already been paid.');
         }
 
         // Only pending orders can be paid
         if ($order->status !== OrderStatus::PENDING->value) {
-            abort(422, 'This order has already been paid.');
+            abort(422, 'This order cannot be paid.');
         }
 
         return DB::transaction(function () use ($order, $provider) {
 
-            // Resolve payment strategy
             $strategy = PaymentStrategyFactory::make($provider);
 
-            // Simulate payment
-            $result = $strategy->pay($order);
+            $gateway = $strategy->pay($order);
 
-            // Store payment record
             $payment = Payment::create([
                 'order_id'       => $order->id,
                 'provider'       => $provider,
                 'amount'         => $order->total,
-                'transaction_id' => $result['transaction_id'],
-                'status'         => $result['success']
-                    ? PaymentStatus::SUCCESS->value
-                    : PaymentStatus::FAILED->value,
-                'raw_response'   => $result['raw_response'],
+                'transaction_id' => $gateway['transaction_id'],
+                'status'         => PaymentStatus::PENDING,
+                'raw_response'   => $gateway['raw_response'],
             ]);
 
-            // Update order and reduce stock only after successful payment
-            if ($result['success']) {
+            return [
+                'payment' => $payment,
+                'gateway' => $gateway,
+            ];
+        });
+    }
+
+    /**
+     * Complete payment.
+     * Called by Stripe/bKash webhook.
+     */
+    public function completePayment(Payment $payment): void
+    {
+        DB::transaction(function () use ($payment) {
+
+            if ($payment->status === PaymentStatus::SUCCESS) {
+                return;
+            }
+
+            $payment->update([
+                'status' => PaymentStatus::SUCCESS,
+            ]);
+
+            $order = $payment->order;
+
+            if ($order->status !== OrderStatus::PAID->value) {
 
                 $order->loadMissing('items.product');
 
@@ -67,8 +90,26 @@ class PaymentService
                     );
                 }
             }
-
-            return $payment;
         });
+    }
+
+    /**
+     * Mark payment as failed.
+     */
+    public function failPayment(Payment $payment): void
+    {
+        $payment->update([
+            'status' => PaymentStatus::FAILED,
+        ]);
+    }
+
+    /**
+     * Mark payment as cancelled.
+     */
+    public function cancelPayment(Payment $payment): void
+    {
+        $payment->update([
+            'status' => PaymentStatus::CANCELLED,
+        ]);
     }
 }

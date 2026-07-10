@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProductController;
+use App\Http\Controllers\Api\V1\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -72,6 +73,17 @@ Route::prefix('v1')->group(function () {
 
         Route::post('orders', [OrderController::class, 'store']);
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stripe Webhook
+    |--------------------------------------------------------------------------
+    |
+    | No authentication middleware.
+    |
+    */
+
+    Route::post('webhooks/stripe', StripeWebhookController::class);
 
     /*
     |--------------------------------------------------------------------------

@@ -15,10 +15,10 @@ class PaymentStrategyFactory
         return match ($provider) {
 
             PaymentProvider::STRIPE->value =>
-            new StripePaymentStrategy(),
+            app(StripePaymentStrategy::class),
 
             PaymentProvider::BKASH->value =>
-            new BkashPaymentStrategy(),
+            app(BkashPaymentStrategy::class),
 
             default =>
             throw new InvalidArgumentException(

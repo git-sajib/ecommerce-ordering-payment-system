@@ -19,7 +19,7 @@ class PaymentController extends Controller
     ) {}
 
     /**
-     * Process a payment.
+     * Create a payment intent.
      */
     public function store(StorePaymentRequest $request): JsonResponse
     {
@@ -27,14 +27,19 @@ class PaymentController extends Controller
             $request->validated()['order_id']
         );
 
-        $payment = $this->paymentService->pay(
+        $result = $this->paymentService->pay(
             $order,
             $request->validated()['provider']
         );
 
         return $this->success(
-            new PaymentResource($payment),
-            'Payment completed successfully.',
+            [
+                'payment' => new PaymentResource($result['payment']),
+                'client_secret' => $result['gateway']['client_secret'],
+                'checkout_url' => $result['gateway']['checkout_url'],
+                'payment_intent_id' => $result['gateway']['transaction_id'],
+            ],
+            'Payment intent created successfully.',
             201
         );
     }

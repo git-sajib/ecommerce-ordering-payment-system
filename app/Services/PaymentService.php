@@ -16,20 +16,18 @@ class PaymentService
     ) {}
 
     /**
-     * Create a payment for an order.
+     * Create a payment.
      */
     public function pay(Order $order, string $provider): array
     {
-        // Prevent duplicate successful payments
-        $alreadyPaid = $order->payment()
-            ->where('status', PaymentStatus::SUCCESS->value)
-            ->exists();
-
-        if ($alreadyPaid) {
+        if (
+            $order->payment()
+            ->where('status', PaymentStatus::SUCCESS)
+            ->exists()
+        ) {
             abort(422, 'This order has already been paid.');
         }
 
-        // Only pending orders can be paid
         if ($order->status !== OrderStatus::PENDING->value) {
             abort(422, 'This order cannot be paid.');
         }
@@ -58,7 +56,6 @@ class PaymentService
 
     /**
      * Complete payment.
-     * Called by Stripe/bKash webhook.
      */
     public function completePayment(Payment $payment): void
     {

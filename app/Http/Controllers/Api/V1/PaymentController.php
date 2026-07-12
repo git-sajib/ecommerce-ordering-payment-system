@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\StorePaymentRequest;
 use App\Http\Resources\PaymentResource;
-use App\Models\Order;
+use App\Models\Payment;
 use App\Services\PaymentService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -22,6 +23,83 @@ class PaymentController extends Controller
     public function __construct(
         protected PaymentService $paymentService
     ) {}
+
+    /**
+     * --------------------------------------------------------------------------
+     * Payment History
+     * --------------------------------------------------------------------------
+     * Get all payments for the authenticated user.
+     */
+    #[OA\Get(
+        path: '/api/v1/payments',
+        summary: 'Get authenticated user payments',
+        tags: ['Payments'],
+        security: [['sanctum' => []]]
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Payments retrieved successfully.'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Unauthenticated.'
+    )]
+    public function index(Request $request): JsonResponse
+    {
+        return $this->success(
+            PaymentResource::collection(
+                $this->paymentService->all(
+                    $request->user()
+                )
+            ),
+            'Payments retrieved successfully.'
+        );
+    }
+
+    /**
+     * --------------------------------------------------------------------------
+     * Payment Details
+     * --------------------------------------------------------------------------
+     * Get a specific payment for the authenticated user.
+     */
+    #[OA\Get(
+        path: '/api/v1/payments/{payment}',
+        summary: 'Get payment details',
+        tags: ['Payments'],
+        security: [['sanctum' => []]]
+    )]
+    #[OA\Parameter(
+        name: 'payment',
+        description: 'Payment ID',
+        in: 'path',
+        required: true,
+        schema: new OA\Schema(
+            type: 'integer',
+            example: 1
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Payment retrieved successfully.'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Payment not found.'
+    )]
+    public function show(
+        Request $request,
+        Payment $payment
+    ): JsonResponse {
+        return $this->success(
+            new PaymentResource(
+                $this->paymentService->find(
+                    $request->user(),
+                    $payment
+                )
+            ),
+            'Payment retrieved successfully.'
+        );
+    }
 
     /**
      * --------------------------------------------------------------------------
@@ -76,9 +154,11 @@ class PaymentController extends Controller
     )]
     public function store(StorePaymentRequest $request): JsonResponse
     {
-        $order = Order::findOrFail(
-            $request->validated()['order_id']
-        );
+        $order = $request->user()
+            ->orders()
+            ->findOrFail(
+                $request->validated()['order_id']
+            );
 
         $result = $this->paymentService->pay(
             $order,

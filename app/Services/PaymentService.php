@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use App\Factories\PaymentStrategyFactory;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class PaymentService
@@ -52,6 +53,34 @@ class PaymentService
                 'gateway' => $gateway,
             ];
         });
+    }
+
+    /**
+     * Get all payments for the authenticated user.
+     */
+    public function all(User $user)
+    {
+        return Payment::with('order')
+            ->whereHas('order', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->latest()
+            ->get();
+    }
+
+    /**
+     * Get a single payment for the authenticated user.
+     */
+    public function find(
+        User $user,
+        Payment $payment
+    ): Payment {
+
+        return Payment::with('order')
+            ->whereHas('order', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($payment->id);
     }
 
     /**

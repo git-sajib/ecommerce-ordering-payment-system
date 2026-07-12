@@ -1,6 +1,6 @@
 # Ecommerce Ordering & Payment System
 
-A production-ready Ecommerce Ordering & Payment System built with **Laravel 13**. This project provides secure authentication, category and product management, order processing, Stripe payment integration, Redis caching, and interactive API documentation using Swagger (OpenAPI 3.0).
+A production-ready **Ecommerce Ordering & Payment System** built with **Laravel 13**. The project provides secure authentication, role-based authorization, category and product management, order processing, Stripe payment integration, Redis caching, and interactive API documentation using **Swagger (OpenAPI 3.0)**.
 
 ---
 
@@ -11,9 +11,12 @@ A production-ready Ecommerce Ordering & Payment System built with **Laravel 13**
 - Category Management (CRUD)
 - Product Management (CRUD)
 - Order Management
+- Order History
+- Payment Management
+- Payment History
 - Stripe Payment Integration
 - Stripe Webhook Handling
-- Redis Cache
+- Redis Caching
 - Docker Support
 - Swagger (OpenAPI 3.0)
 - Category Tree Traversal (DFS)
@@ -74,12 +77,15 @@ docs/Payment-Flow.png
 ```
 app/
 ├── Enums/
+├── Factories/
 ├── Http/
 │   ├── Controllers/
+│   ├── Middleware/
 │   ├── Requests/
 │   └── Resources/
 ├── Models/
 ├── Services/
+├── Strategies/
 ├── Traits/
 └── Providers/
 
@@ -94,8 +100,8 @@ routes/
 
 docs/
 ├── ER-Diagram.png
-├── System-Architecture.png
-└── Payment-Flow.png
+├── Payment-Flow.png
+└── System-Architecture.png
 ```
 
 ---
@@ -108,7 +114,7 @@ Clone the repository
 git clone <repository-url>
 ```
 
-Go to the project
+Navigate to the project
 
 ```bash
 cd ecommerce-ordering-payment-system
@@ -120,7 +126,7 @@ Install dependencies
 composer install
 ```
 
-Copy environment
+Copy the environment file
 
 ```bash
 cp .env.example .env
@@ -132,7 +138,7 @@ Generate application key
 php artisan key:generate
 ```
 
-Run migrations and seeders
+Run database migrations and seeders
 
 ```bash
 php artisan migrate:fresh --seed
@@ -144,7 +150,7 @@ Generate Swagger documentation
 php artisan l5-swagger:generate
 ```
 
-Run the application
+Start the application
 
 ```bash
 php artisan serve
@@ -160,7 +166,7 @@ Build containers
 docker compose build
 ```
 
-Run containers
+Start containers
 
 ```bash
 docker compose up -d
@@ -196,7 +202,7 @@ Generate documentation
 php artisan l5-swagger:generate
 ```
 
-Open Swagger UI
+Swagger UI
 
 ```
 http://127.0.0.1:8000/api/documentation
@@ -238,43 +244,90 @@ password123
 
 ---
 
+# User Roles
+
+## Administrator
+
+- Manage Categories
+- Manage Products
+- Access administrative APIs
+
+## Customer
+
+- Register & Login
+- Browse Categories
+- Browse Products
+- Create Orders
+- View Own Orders
+- Create Payments
+- View Own Payments
+
+---
+
 # API Modules
 
 ## Authentication
 
-- Register
-- Login
-- Current User
-- Logout
+| Method | Endpoint                | Description         |
+| ------ | ----------------------- | ------------------- |
+| POST   | `/api/v1/auth/register` | Register a new user |
+| POST   | `/api/v1/auth/login`    | Login               |
+| GET    | `/api/v1/auth/me`       | Authenticated user  |
+| POST   | `/api/v1/auth/logout`   | Logout              |
+
+---
 
 ## Categories
 
-- List Categories
-- Category Tree
-- DFS Traversal
-- Create Category
-- Update Category
-- Delete Category
+| Method | Endpoint                  | Description             |
+| ------ | ------------------------- | ----------------------- |
+| GET    | `/api/v1/categories`      | List Categories         |
+| GET    | `/api/v1/categories/tree` | Category Tree           |
+| GET    | `/api/v1/categories/dfs`  | DFS Traversal           |
+| GET    | `/api/v1/categories/{id}` | Category Details        |
+| POST   | `/api/v1/categories`      | Create Category (Admin) |
+| PUT    | `/api/v1/categories/{id}` | Update Category (Admin) |
+| DELETE | `/api/v1/categories/{id}` | Delete Category (Admin) |
+
+---
 
 ## Products
 
-- List Products
-- Product Details
-- Create Product
-- Update Product
-- Delete Product
+| Method | Endpoint                | Description            |
+| ------ | ----------------------- | ---------------------- |
+| GET    | `/api/v1/products`      | List Products          |
+| GET    | `/api/v1/products/{id}` | Product Details        |
+| POST   | `/api/v1/products`      | Create Product (Admin) |
+| PUT    | `/api/v1/products/{id}` | Update Product (Admin) |
+| DELETE | `/api/v1/products/{id}` | Delete Product (Admin) |
+
+---
 
 ## Orders
 
-- Create Order
+| Method | Endpoint              | Description        |
+| ------ | --------------------- | ------------------ |
+| GET    | `/api/v1/orders`      | View Order History |
+| GET    | `/api/v1/orders/{id}` | View Order Details |
+| POST   | `/api/v1/orders`      | Create Order       |
+
+---
 
 ## Payments
 
-- Stripe Payment
+| Method | Endpoint                | Description          |
+| ------ | ----------------------- | -------------------- |
+| GET    | `/api/v1/payments`      | View Payment History |
+| GET    | `/api/v1/payments/{id}` | View Payment Details |
+| POST   | `/api/v1/payments`      | Create Payment       |
+
+---
 
 ## Webhooks
 
-- Stripe Webhook
+| Method | Endpoint                  | Description    |
+| ------ | ------------------------- | -------------- |
+| POST   | `/api/v1/webhooks/stripe` | Stripe Webhook |
 
 ---
 
@@ -298,9 +351,9 @@ Authorization: Bearer {token}
 
 - bKash
 
-> The payment module is implemented using the **Strategy Pattern**, allowing additional payment providers (such as bKash) to be integrated with minimal changes.
+The payment module is implemented using the **Strategy Pattern**, making it easy to integrate additional payment gateways.
 
-> **Note:** bKash sandbox credentials were unavailable during the assessment period, so the integration could not be completed.
+> **Note:** bKash sandbox credentials were unavailable during the assessment period, so the integration could not be completed. The application architecture is ready for adding bKash support.
 
 ---
 
@@ -308,7 +361,7 @@ Authorization: Bearer {token}
 
 Redis is used for
 
-- API Cache
+- API Caching
 - Session Storage
 - Queue Support (Configurable)
 
@@ -337,18 +390,25 @@ Category hierarchy traversal is implemented using
 - Role-Based Authorization
 - Mass Assignment Protection
 - API Resources
-- Secure Payment Webhook Verification
+- Stripe Webhook Signature Verification
+- User Ownership Validation for Orders & Payments
 
 ---
 
 # Database Seeders
 
-Included
+Included seeders
 
 - AdminUserSeeder
 - CustomerUserSeeder
 - CategorySeeder
 - ProductSeeder
+
+Populate the database using
+
+```bash
+php artisan migrate:fresh --seed
+```
 
 ---
 
@@ -363,28 +423,31 @@ The REST APIs can be tested using
 
 # Documentation
 
-The following documentation is included inside the **docs/** directory.
+The project includes
 
 - ER Diagram
 - System Architecture Diagram
 - Payment Flow Diagram
+- Swagger (OpenAPI 3.0)
+
+All documentation files are located inside the **docs/** directory.
 
 ---
 
 # Future Improvements
 
 - bKash Payment Integration
-- Payment Refunds
+- Payment Refund Support
 - Email Notifications
-- Queue Workers
+- Background Queue Workers
 - Automated Feature Tests
-- CI/CD Pipeline (GitHub Actions)
+- GitHub Actions CI/CD Pipeline
 
 ---
 
 # License
 
-This project was developed as part of a Backend Developer Technical Assessment.
+This project was developed as part of a **Backend Developer Technical Assessment**.
 
 ---
 
@@ -394,4 +457,4 @@ This project was developed as part of a Backend Developer Technical Assessment.
 
 Backend Developer Assessment
 
-Laravel 13 • Docker • Redis • Stripe • Swagger • Sanctum
+**Laravel 13 • Docker • Redis • Stripe • Swagger • Sanctum**

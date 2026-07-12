@@ -71,6 +71,9 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
 
+        Route::get('orders', [OrderController::class, 'index']);
+        Route::get('orders/{order}', [OrderController::class, 'show']);
+
         Route::post('orders', [OrderController::class, 'store']);
     });
 
@@ -98,8 +101,10 @@ Route::prefix('v1')->group(function () {
     | Payment Routes
     |--------------------------------------------------------------------------
     */
-
     Route::middleware('auth:sanctum')->group(function () {
+
+        Route::get('payments', [PaymentController::class, 'index']);
+        Route::get('payments/{payment}', [PaymentController::class, 'show']);
 
         Route::post('payments', [PaymentController::class, 'store']);
     });

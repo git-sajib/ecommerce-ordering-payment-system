@@ -75,11 +75,7 @@ class CategoryService
      */
     public function tree(): Collection
     {
-        return Cache::remember(
-            self::CACHE_TREE,
-            now()->addHour(),
-            fn() => $this->treeService->buildTree()
-        );
+        return $this->treeService->buildTree();
     }
 
     /**

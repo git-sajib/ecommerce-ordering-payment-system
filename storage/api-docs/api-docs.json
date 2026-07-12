@@ -376,6 +376,27 @@
             }
         },
         "/api/v1/orders": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get authenticated user orders",
+                "description": "--------------------------------------------------------------------------\nOrder History\n--------------------------------------------------------------------------\nGet all orders for the authenticated user.",
+                "operationId": "00d3856d2d3d93124e0cc021d0cb5b79",
+                "responses": {
+                    "200": {
+                        "description": "Orders retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Orders"
@@ -432,7 +453,63 @@
                 ]
             }
         },
+        "/api/v1/orders/{order}": {
+            "get": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Get order details",
+                "description": "--------------------------------------------------------------------------\nOrder Details\n--------------------------------------------------------------------------\nGet a specific order for the authenticated user.",
+                "operationId": "38713af501dbd66af5a66bd568a49bc2",
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "description": "Order ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order retrieved successfully."
+                    },
+                    "404": {
+                        "description": "Order not found."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/v1/payments": {
+            "get": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Get authenticated user payments",
+                "description": "--------------------------------------------------------------------------\nPayment History\n--------------------------------------------------------------------------\nGet all payments for the authenticated user.",
+                "operationId": "e8d0c8549aa2ea8bba8769dd1925862f",
+                "responses": {
+                    "200": {
+                        "description": "Payments retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Unauthenticated."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Payments"
@@ -480,6 +557,41 @@
                     },
                     "422": {
                         "description": "Validation failed."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/payments/{payment}": {
+            "get": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Get payment details",
+                "description": "--------------------------------------------------------------------------\nPayment Details\n--------------------------------------------------------------------------\nGet a specific payment for the authenticated user.",
+                "operationId": "65a87f3d22760936f3086103e792519d",
+                "parameters": [
+                    {
+                        "name": "payment",
+                        "in": "path",
+                        "description": "Payment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment retrieved successfully."
+                    },
+                    "404": {
+                        "description": "Payment not found."
                     }
                 },
                 "security": [

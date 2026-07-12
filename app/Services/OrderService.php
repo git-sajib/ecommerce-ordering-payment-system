@@ -38,6 +38,33 @@ class OrderService
     }
 
     /**
+     * Get all orders for the authenticated user.
+     */
+    public function all(User $user)
+    {
+        return Order::with([
+            'items.product',
+            'payment',
+        ])
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
+    }
+
+    /**
+     * Get a single order for the authenticated user.
+     */
+    public function find(User $user, Order $order): Order
+    {
+        return Order::with([
+            'items.product',
+            'payment',
+        ])
+            ->where('user_id', $user->id)
+            ->findOrFail($order->id);
+    }
+
+    /**
      * Load all requested products in one query.
      */
     private function loadProducts(array $items): Collection

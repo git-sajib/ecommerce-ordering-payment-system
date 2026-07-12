@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Resources\OrderResource;
+use App\Models\Order;
 use App\Services\OrderService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -21,6 +23,83 @@ class OrderController extends Controller
     public function __construct(
         protected OrderService $orderService
     ) {}
+
+    /**
+     * --------------------------------------------------------------------------
+     * Order History
+     * --------------------------------------------------------------------------
+     * Get all orders for the authenticated user.
+     */
+    #[OA\Get(
+        path: '/api/v1/orders',
+        summary: 'Get authenticated user orders',
+        tags: ['Orders'],
+        security: [['sanctum' => []]]
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Orders retrieved successfully.'
+    )]
+    #[OA\Response(
+        response: 401,
+        description: 'Unauthenticated.'
+    )]
+    public function index(Request $request): JsonResponse
+    {
+        return $this->success(
+            OrderResource::collection(
+                $this->orderService->all(
+                    $request->user()
+                )
+            ),
+            'Orders retrieved successfully.'
+        );
+    }
+
+    /**
+     * --------------------------------------------------------------------------
+     * Order Details
+     * --------------------------------------------------------------------------
+     * Get a specific order for the authenticated user.
+     */
+    #[OA\Get(
+        path: '/api/v1/orders/{order}',
+        summary: 'Get order details',
+        tags: ['Orders'],
+        security: [['sanctum' => []]]
+    )]
+    #[OA\Parameter(
+        name: 'order',
+        description: 'Order ID',
+        in: 'path',
+        required: true,
+        schema: new OA\Schema(
+            type: 'integer',
+            example: 1
+        )
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Order retrieved successfully.'
+    )]
+    #[OA\Response(
+        response: 404,
+        description: 'Order not found.'
+    )]
+    public function show(
+        Request $request,
+        Order $order
+    ): JsonResponse {
+        return $this->success(
+            new OrderResource(
+                $this->orderService->find(
+                    $request->user(),
+                    $order
+                )
+            ),
+            'Order retrieved successfully.'
+        );
+    }
 
     /**
      * --------------------------------------------------------------------------

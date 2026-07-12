@@ -1,68 +1,70 @@
 # Ecommerce Ordering & Payment System
 
-A production-oriented Laravel 13 REST API for an Ecommerce Ordering & Payment System developed as a backend assessment.
+A production-ready Ecommerce Ordering & Payment System built with **Laravel 13**. This project provides secure authentication, category and product management, order processing, Stripe payment integration, Redis caching, and interactive API documentation using Swagger (OpenAPI 3.0).
 
 ---
 
-## Features
+# Features
 
 - User Authentication (Laravel Sanctum)
-- Role-Based Access Control (Admin / Customer)
-- Category Management
-- Product Management
+- Role-Based Access Control (Admin & Customer)
+- Category Management (CRUD)
+- Product Management (CRUD)
 - Order Management
-- Stripe Payment Gateway
-- Redis Caching
+- Stripe Payment Integration
+- Stripe Webhook Handling
+- Redis Cache
 - Docker Support
-- Swagger (OpenAPI 3.0) Documentation
+- Swagger (OpenAPI 3.0)
 - Category Tree Traversal (DFS)
+- Service Layer Architecture
 - Strategy Pattern for Payment Providers
-- RESTful API Architecture
+- RESTful API Design
 
 ---
 
 # Technology Stack
 
-| Technology | Version         |
-| ---------- | --------------- |
-| PHP        | 8.3             |
-| Laravel    | 13              |
-| MySQL      | 8               |
-| Redis      | 7               |
-| Docker     | Latest          |
-| Nginx      | Latest          |
-| Stripe     | Latest API      |
-| Sanctum    | Laravel Sanctum |
-| Swagger    | L5 Swagger      |
+| Technology | Version                  |
+| ---------- | ------------------------ |
+| PHP        | 8.3                      |
+| Laravel    | 13                       |
+| MySQL      | 8                        |
+| Redis      | 7                        |
+| Docker     | Latest                   |
+| Nginx      | Latest                   |
+| Stripe     | Latest API               |
+| Sanctum    | Laravel Sanctum          |
+| Swagger    | L5 Swagger (OpenAPI 3.0) |
 
 ---
 
-# Architecture
+# System Architecture
+
+See:
 
 ```
-Client
-      │
-      ▼
- Laravel REST API
-      │
- ┌───────────────┐
- │ Controllers   │
- └───────────────┘
-      │
-      ▼
- Service Layer
-      │
-      ▼
- Models
-      │
-      ▼
- MySQL Database
+docs/System-Architecture.png
+```
 
-Redis
-Caching Layer
+---
 
-Stripe
-Payment Gateway
+# Database Design (ER Diagram)
+
+See:
+
+```
+docs/ER-Diagram.png
+```
+
+---
+
+# Payment Flow
+
+See:
+
+```
+docs/Payment-Flow.png
 ```
 
 ---
@@ -71,18 +73,29 @@ Payment Gateway
 
 ```
 app/
- ├── Http/
- │    ├── Controllers
- │    ├── Requests
- │    ├── Resources
- │
- ├── Services
- │
- ├── Models
- │
- ├── Traits
- │
- └── Enums
+├── Enums/
+├── Http/
+│   ├── Controllers/
+│   ├── Requests/
+│   └── Resources/
+├── Models/
+├── Services/
+├── Traits/
+└── Providers/
+
+database/
+├── migrations/
+├── factories/
+└── seeders/
+
+routes/
+├── api.php
+└── web.php
+
+docs/
+├── ER-Diagram.png
+├── System-Architecture.png
+└── Payment-Flow.png
 ```
 
 ---
@@ -95,6 +108,8 @@ Clone the repository
 git clone <repository-url>
 ```
 
+Go to the project
+
 ```bash
 cd ecommerce-ordering-payment-system
 ```
@@ -105,7 +120,7 @@ Install dependencies
 composer install
 ```
 
-Copy environment file
+Copy environment
 
 ```bash
 cp .env.example .env
@@ -123,7 +138,13 @@ Run migrations and seeders
 php artisan migrate:fresh --seed
 ```
 
-Start Laravel
+Generate Swagger documentation
+
+```bash
+php artisan l5-swagger:generate
+```
+
+Run the application
 
 ```bash
 php artisan serve
@@ -151,6 +172,20 @@ Run migrations
 docker compose exec app php artisan migrate --seed
 ```
 
+Generate Swagger
+
+```bash
+docker compose exec app php artisan l5-swagger:generate
+```
+
+---
+
+# API Base URL
+
+```
+http://127.0.0.1:8000/api/v1
+```
+
 ---
 
 # Swagger Documentation
@@ -161,15 +196,15 @@ Generate documentation
 php artisan l5-swagger:generate
 ```
 
-Swagger UI
+Open Swagger UI
 
 ```
-http://localhost:8000/api/documentation
+http://127.0.0.1:8000/api/documentation
 ```
 
 ---
 
-# Default Accounts
+# Demo Accounts
 
 ## Administrator
 
@@ -205,14 +240,14 @@ password123
 
 # API Modules
 
-Authentication
+## Authentication
 
 - Register
 - Login
 - Current User
 - Logout
 
-Categories
+## Categories
 
 - List Categories
 - Category Tree
@@ -221,7 +256,7 @@ Categories
 - Update Category
 - Delete Category
 
-Products
+## Products
 
 - List Products
 - Product Details
@@ -229,15 +264,15 @@ Products
 - Update Product
 - Delete Product
 
-Orders
+## Orders
 
 - Create Order
 
-Payments
+## Payments
 
 - Stripe Payment
 
-Webhooks
+## Webhooks
 
 - Stripe Webhook
 
@@ -245,7 +280,7 @@ Webhooks
 
 # Authentication
 
-All protected routes require a Bearer Token.
+Protected endpoints require a Bearer Token.
 
 ```
 Authorization: Bearer {token}
@@ -255,24 +290,27 @@ Authorization: Bearer {token}
 
 # Payment Providers
 
-Implemented
+## Implemented
 
 - Stripe
 
-Planned
+## Planned
 
-- bKash Sandbox Integration
+- bKash
 
-> **Note:** bKash integration is designed using the Strategy Pattern. Sandbox credentials were unavailable during the assessment period, so live implementation could not be completed.
+> The payment module is implemented using the **Strategy Pattern**, allowing additional payment providers (such as bKash) to be integrated with minimal changes.
+
+> **Note:** bKash sandbox credentials were unavailable during the assessment period, so the integration could not be completed.
 
 ---
 
 # Redis
 
-Redis is used for:
+Redis is used for
 
-- Cache
-- Queue (configurable)
+- API Cache
+- Session Storage
+- Queue Support (Configurable)
 
 ---
 
@@ -285,20 +323,9 @@ Redis is used for:
 
 # Algorithms
 
-Category Tree Traversal implemented using
+Category hierarchy traversal is implemented using
 
 - Depth First Search (DFS)
-
----
-
-# Seeders
-
-Included
-
-- AdminUserSeeder
-- CustomerUserSeeder
-- CategorySeeder
-- ProductSeeder
 
 ---
 
@@ -309,16 +336,55 @@ Included
 - Request Validation
 - Role-Based Authorization
 - Mass Assignment Protection
+- API Resources
+- Secure Payment Webhook Verification
+
+---
+
+# Database Seeders
+
+Included
+
+- AdminUserSeeder
+- CustomerUserSeeder
+- CategorySeeder
+- ProductSeeder
+
+---
+
+# API Testing
+
+The REST APIs can be tested using
+
+- Swagger UI
+- Postman
+
+---
+
+# Documentation
+
+The following documentation is included inside the **docs/** directory.
+
+- ER Diagram
+- System Architecture Diagram
+- Payment Flow Diagram
 
 ---
 
 # Future Improvements
 
 - bKash Payment Integration
+- Payment Refunds
 - Email Notifications
-- PHPUnit Feature Tests
-- GitHub Actions CI/CD
-- Frontend (Next.js)
+- Queue Workers
+- Automated Feature Tests
+- CI/CD Pipeline (GitHub Actions)
+
+---
+
+# License
+
+This project was developed as part of a Backend Developer Technical Assessment.
 
 ---
 
@@ -328,4 +394,4 @@ Included
 
 Backend Developer Assessment
 
-Laravel 13 • Docker • Redis • Stripe • Swagger
+Laravel 13 • Docker • Redis • Stripe • Swagger • Sanctum

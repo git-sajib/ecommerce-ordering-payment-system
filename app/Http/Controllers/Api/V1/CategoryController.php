@@ -90,7 +90,9 @@ class CategoryController extends Controller
     public function dfs(): JsonResponse
     {
         return $this->success(
-            $this->categoryService->dfs()
+            CategoryResource::collection(
+                $this->categoryService->dfs()
+            )
         );
     }
 

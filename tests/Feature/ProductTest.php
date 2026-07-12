@@ -2,19 +2,14 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class ProductTest extends TestCase
 {
-    /**
-     * A basic feature test example.
-     */
-    public function test_example(): void
+    public function test_products_endpoint_exists(): void
     {
-        $response = $this->get('/');
+        $response = $this->get('/api/v1/products');
 
-        $response->assertStatus(200);
+        $this->assertNotEquals(404, $response->status());
     }
 }

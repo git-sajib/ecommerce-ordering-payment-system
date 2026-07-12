@@ -4,33 +4,72 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        $categories = [
+        // Root Categories
+        $electronics = Category::updateOrCreate(
+            ['slug' => 'electronics'],
+            [
+                'name' => 'Electronics',
+                'status' => true,
+            ]
+        );
 
-            'Electronics',
+        $fashion = Category::updateOrCreate(
+            ['slug' => 'fashion'],
+            [
+                'name' => 'Fashion',
+                'status' => true,
+            ]
+        );
 
-            'Fashion',
+        $books = Category::updateOrCreate(
+            ['slug' => 'books'],
+            [
+                'name' => 'Books',
+                'status' => true,
+            ]
+        );
 
-            'Books',
+        // Electronics Children
+        Category::updateOrCreate(
+            ['slug' => 'smartphones'],
+            [
+                'name' => 'Smartphones',
+                'parent_id' => $electronics->id,
+                'status' => true,
+            ]
+        );
 
-        ];
+        Category::updateOrCreate(
+            ['slug' => 'laptops'],
+            [
+                'name' => 'Laptops',
+                'parent_id' => $electronics->id,
+                'status' => true,
+            ]
+        );
 
-        foreach ($categories as $category) {
+        // Fashion Children
+        Category::updateOrCreate(
+            ['slug' => 'mens-fashion'],
+            [
+                'name' => "Men's Fashion",
+                'parent_id' => $fashion->id,
+                'status' => true,
+            ]
+        );
 
-            Category::updateOrCreate(
-                [
-                    'slug' => Str::slug($category),
-                ],
-                [
-                    'name' => $category,
-                    'status' => true,
-                ]
-            );
-        }
+        Category::updateOrCreate(
+            ['slug' => 'womens-fashion'],
+            [
+                'name' => "Women's Fashion",
+                'parent_id' => $fashion->id,
+                'status' => true,
+            ]
+        );
     }
 }

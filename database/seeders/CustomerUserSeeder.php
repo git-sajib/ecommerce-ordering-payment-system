@@ -13,11 +13,11 @@ class CustomerUserSeeder extends Seeder
     {
         User::updateOrCreate(
             [
-                'email' => 'john@example.com',
+                'email' => 'assessment@example.com',
             ],
             [
-                'name' => 'John Doe',
-                'password' => Hash::make('Password@123'),
+                'name' => 'Assessment User',
+                'password' => Hash::make('password123'),
                 'role' => UserRole::CUSTOMER->value,
             ]
         );

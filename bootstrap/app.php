@@ -18,6 +18,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => AdminMiddleware::class,
         ]);
+
+        $middleware->redirectGuestsTo(function (Request $request) {
+            return $request->expectsJson()
+                ? null
+                : route('login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 

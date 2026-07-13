@@ -4,24 +4,19 @@ namespace App\Services;
 
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Cache;
 
 class ProductService
 {
-    private const CACHE_PRODUCTS = 'products';
-
     /**
-     * Get all products with category.
+     * Get all active products with category.
      */
     public function all(): Collection
     {
-        return Cache::remember(
-            self::CACHE_PRODUCTS,
-            now()->addHour(),
-            fn() => Product::with('category')
-                ->latest()
-                ->get()
-        );
+        return Product::query()
+            ->with('category')
+            ->where('status', true)
+            ->latest()
+            ->get();
     }
 
     /**
@@ -30,6 +25,7 @@ class ProductService
     public function find(int $id): Product
     {
         return Product::with('category')
+            ->where('status', true)
             ->findOrFail($id);
     }
 
@@ -38,11 +34,7 @@ class ProductService
      */
     public function create(array $data): Product
     {
-        $product = Product::create($data);
-
-        $this->clearCache();
-
-        return $product;
+        return Product::create($data);
     }
 
     /**
@@ -51,8 +43,6 @@ class ProductService
     public function update(Product $product, array $data): Product
     {
         $product->update($data);
-
-        $this->clearCache();
 
         return $product->fresh();
     }
@@ -63,8 +53,6 @@ class ProductService
     public function delete(Product $product): void
     {
         $product->delete();
-
-        $this->clearCache();
     }
 
     /**
@@ -77,15 +65,5 @@ class ProductService
         }
 
         $product->decrement('stock', $quantity);
-
-        $this->clearCache();
-    }
-
-    /**
-     * Clear product cache.
-     */
-    private function clearCache(): void
-    {
-        Cache::forget(self::CACHE_PRODUCTS);
     }
 }

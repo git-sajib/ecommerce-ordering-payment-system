@@ -3,19 +3,42 @@
 namespace App\Services;
 
 use App\Models\Category;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class CategoryCacheService
 {
-    /**
-     * Redis cache key.
-     */
-    private const CACHE_KEY = 'categories.adjacency';
+    private const CACHE_CATEGORIES = 'categories.data';
+
+    private const CACHE_ADJACENCY = 'categories.adjacency';
+
+    private const TTL = 3600;
 
     /**
-     * Cache lifetime.
+     * Get cached categories.
      */
-    private const TTL = 3600;
+    public function getCategories(): Collection
+    {
+        return Category::hydrate(
+            Cache::remember(
+                self::CACHE_CATEGORIES,
+                self::TTL,
+                fn() => Category::query()
+                    ->select([
+                        'id',
+                        'parent_id',
+                        'name',
+                        'slug',
+                        'status',
+                        'created_at',
+                        'updated_at',
+                    ])
+                    ->orderBy('name')
+                    ->get()
+                    ->toArray()
+            )
+        );
+    }
 
     /**
      * Get cached adjacency list.
@@ -23,31 +46,23 @@ class CategoryCacheService
     public function getAdjacencyList(): array
     {
         return Cache::remember(
-            self::CACHE_KEY,
+            self::CACHE_ADJACENCY,
             self::TTL,
             fn() => $this->buildAdjacencyList()
         );
     }
 
     /**
-     * Remove cached adjacency list.
+     * Clear cache.
      */
     public function forget(): void
     {
-        Cache::forget(self::CACHE_KEY);
+        Cache::forget(self::CACHE_CATEGORIES);
+        Cache::forget(self::CACHE_ADJACENCY);
     }
 
     /**
-     * Build adjacency list from database.
-     *
-     * Result format:
-     *
-     * [
-     *     null => [1, 8],
-     *     1 => [2, 3],
-     *     2 => [4],
-     *     3 => [],
-     * ]
+     * Build adjacency list.
      */
     private function buildAdjacencyList(): array
     {

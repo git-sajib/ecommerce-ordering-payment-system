@@ -5,13 +5,9 @@ namespace App\Services;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
-use Illuminate\Support\Facades\Cache;
 
 class CategoryService
 {
-    private const CACHE_CATEGORIES = 'categories';
-    private const CACHE_CATEGORY_TREE = 'category-tree';
-
     public function __construct(
         protected CategoryCacheService $categoryCacheService,
         protected CategoryTraversalService $categoryTraversalService
@@ -64,38 +60,21 @@ class CategoryService
      */
     public function all(): Collection
     {
-        return Cache::remember(
-            self::CACHE_CATEGORIES,
-            now()->addHour(),
-            fn() => Category::query()
-                ->latest()
-                ->get()
-        );
+        return $this->categoryCacheService->getCategories();
     }
 
     /**
      * Get category tree.
-     *
-     * Builds and caches the hierarchy using a single database query.
      */
     public function tree(): Collection
     {
-        return Cache::remember(
-            self::CACHE_CATEGORY_TREE,
-            now()->addHour(),
-            function () {
-
-                $categories = Category::query()
-                    ->orderBy('name')
-                    ->get();
-
-                return $this->buildTree($categories);
-            }
+        return $this->buildTree(
+            $this->categoryCacheService->getCategories()
         );
     }
 
     /**
-     * Get categories in DFS order using the cached adjacency list.
+     * Get categories in DFS order.
      */
     public function dfs(): Collection
     {
@@ -109,9 +88,8 @@ class CategoryService
             return new Collection();
         }
 
-        $models = Category::query()
-            ->whereIn('id', $ids)
-            ->get()
+        $models = $this->categoryCacheService
+            ->getCategories()
             ->keyBy('id');
 
         return new Collection(
@@ -124,9 +102,7 @@ class CategoryService
     }
 
     /**
-     * Build unlimited-depth category tree in memory.
-     *
-     * Executes only one database query.
+     * Build unlimited-depth category tree.
      */
     private function buildTree(Collection $categories): Collection
     {
@@ -139,7 +115,7 @@ class CategoryService
     }
 
     /**
-     * Attach child categories recursively.
+     * Attach children recursively.
      */
     private function attachChildren(
         ?int $parentId,
@@ -165,14 +141,10 @@ class CategoryService
     }
 
     /**
-     * Clear all category caches.
+     * Clear category caches.
      */
     private function clearCache(): void
     {
-        Cache::forget(self::CACHE_CATEGORIES);
-
-        Cache::forget(self::CACHE_CATEGORY_TREE);
-
         $this->categoryCacheService->forget();
     }
 }
